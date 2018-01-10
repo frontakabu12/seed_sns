@@ -16,7 +16,49 @@ if(isset($_SESSION['id'])){
 }
 
 
-// ----------表示用のデータ取得-------------
+
+
+  // POST送信されていたら、つぶやきをINSERTで保存
+
+  if (isset($_POST) && !empty($_POST)) {
+    //変数に入力された値を代入して扱いやすいようにする
+    $tweet = $_POST['tweet'];
+    $member_id = $_SESSION['id'];
+    
+    
+    
+    try {
+    //DBにつぶやきを登録するSQL文を作成
+      // now() MySQLが用意してくれている関数。現在日時を取得できる
+      $sql = "INSERT INTO `tweets`(`tweet`, `member_id`, `reply_tweet_id`, `created`, `modified`) VALUES (?,?,-1,now(),now()) ";
+
+      
+    //SQL文を実行
+     
+      $data = array($tweet, $member_id);
+      $stmt = $dbh->prepare($sql);
+      $stmt->execute($data);
+
+    //$_SESSIONの情報を削除
+      // unset 指定した変数を削除するという意味。SESSIONじゃなくても使える
+      // unset($_SESSION["disc"]);
+
+    //thanks.phpへ遷移
+      header('Location: index.php');
+      exit();
+      
+    } catch (Exception $e) {
+      
+      
+    }
+
+    
+
+  }
+
+
+
+  // ----------表示用のデータ取得-------------
 
 
   try {
@@ -32,6 +74,8 @@ if(isset($_SESSION['id'])){
   } catch (Exception $e) {
     
   }
+
+
 
 
 
