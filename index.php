@@ -1,3 +1,21 @@
+<?php
+session_start();
+
+// ログインチェック
+
+if(isset($_SESSION['id'])){
+  // ログインしている
+}else{
+  // ログインしていない
+  // ログイン画面へ飛ばす
+  header("Location: login.php");
+  exit();
+}
+
+  
+?>
+
+
 <!DOCTYPE html>
 <html lang="ja">
   <head>
@@ -31,7 +49,7 @@
           <!-- Collect the nav links, forms, and other content for toggling -->
           <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
               <ul class="nav navbar-nav navbar-right">
-                <li><a href="logout.html">ログアウト</a></li>
+                <li><a href="logout.php">ログアウト</a></li>
               </ul>
           </div>
           <!-- /.navbar-collapse -->
@@ -54,9 +72,9 @@
           <ul class="paging">
             <input type="submit" class="btn btn-info" value="つぶやく">
                 &nbsp;&nbsp;&nbsp;&nbsp;
-                <li><a href="index.html" class="btn btn-default">前</a></li>
+                <li><a href="index.php" class="btn btn-default">前</a></li>
                 &nbsp;&nbsp;|&nbsp;&nbsp;
-                <li><a href="index.html" class="btn btn-default">次</a></li>
+                <li><a href="index.php" class="btn btn-default">次</a></li>
           </ul>
         </form>
       </div>
