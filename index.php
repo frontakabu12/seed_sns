@@ -19,10 +19,12 @@ if(isset($_SESSION['id'])){
 
 
   // POST送信されていたら、つぶやきをINSERTで保存
+  // $_POST["tweet"] =>"" $_POSTがemptyだと認識されない
+  // $_POST["tweet"] =>"" $_POST["twwet"]が空だと認識される
 
-  if (isset($_POST) && !empty($_POST)) {
+  if (isset($_POST) && !empty($_POST["tweet"])) {
     //変数に入力された値を代入して扱いやすいようにする
-    $tweet = $_POST['tweet'];
+    $tweet = $_POST['tweet'];  //ボタンを押したとき
     $member_id = $_SESSION['id'];
     
     
@@ -30,12 +32,14 @@ if(isset($_SESSION['id'])){
     try {
     //DBにつぶやきを登録するSQL文を作成
       // now() MySQLが用意してくれている関数。現在日時を取得できる
+      // ?はsql injection防止のため
+
       $sql = "INSERT INTO `tweets`(`tweet`, `member_id`, `reply_tweet_id`, `created`, `modified`) VALUES (?,?,-1,now(),now()) ";
 
       
     //SQL文を実行
      
-      $data = array($tweet, $member_id);
+      $data = array($tweet, $member_id);    // $data = array($_POST['tweet'], $_SESSION["id"], -1);
       $stmt = $dbh->prepare($sql);
       $stmt->execute($data);
 
@@ -43,14 +47,14 @@ if(isset($_SESSION['id'])){
       // unset 指定した変数を削除するという意味。SESSIONじゃなくても使える
       // unset($_SESSION["disc"]);
 
-    //thanks.phpへ遷移
+    //自分の画面に移動する(データの再送信防止)　index.phpへ遷移
       header('Location: index.php');
       exit();
       
     } catch (Exception $e) {
       
       
-    }
+     }
 
     
 
@@ -70,6 +74,36 @@ if(isset($_SESSION['id'])){
     $stmt->execute();
 
     $login_member = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    // 一覧用の情報を取得 
+    // テーブル結合(複数のテーブルから関連したデータを取得)
+    // ORDER BY `tweets`.`modified` DESC 最新順(降順)に並び替え
+
+    $sql = "SELECT `tweets`.*,`members`.`nick_name`, `members`.`picture_path` FROM `tweets` INNER JOIN `members` ON `tweets`.`member_id` = `members`.`member_id` ORDER BY `tweets`.`modified` DESC";
+
+
+    $stmt = $dbh->prepare($sql);
+    $stmt->execute();
+
+
+    // 一覧表示用の配列を用意
+    $tweet_list = array();
+
+
+    // 複数行のデータを取得するためのループ
+    while (1) {
+      $one_tweet = $stmt->fetch(PDO::FETCH_ASSOC);
+
+      if ($one_tweet == false) {
+        break;
+      }else{
+        // データが取得できている
+        $tweet_list[] = $one_tweet;
+
+      }
+    }
+
+
 
   } catch (Exception $e) {
     
@@ -149,62 +183,40 @@ if(isset($_SESSION['id'])){
       </div>
 
       <div class="col-md-8 content-margin-top">
-        <div class="msg">
-          <img src="http://c85c7a.medialib.glogster.com/taniaarca/media/71/71c8671f98761a43f6f50a282e20f0b82bdb1f8c/blog-images-1349202732-fondo-steve-jobs-ipad.jpg" width="48" height="48">
+        <?php foreach ($tweet_list as $one_tweet) { ?>
+        
+
+        <!-- 繰り返すタグが書かれる場所 -->
+         <div class="msg">
+          <img src="picture_path/<?php echo $one_tweet["picture_path"]; ?>" width="48" height="48">
           <p>
-            つぶやき４<span class="name"> (Seed kun) </span>
+            <?php echo $one_tweet["tweet"]; ?><span class="name"> (<?php echo $one_tweet["nick_name"];  ?>) </span>
             [<a href="#">Re</a>]
           </p>
           <p class="day">
-            <a href="view.html">
-              2016-01-28 18:04
+            <a href="view.php?tweet_id=<?php echo $one_tweet["tweet_id"]; ?>">
+             <?php 
+              $modify_date = $one_tweet["modified"];
+
+              // date関数　書式を時間に変更するとき
+              // strtotime 文字型(string)のデータを日時型に変換できる
+              // 24時間表記：H, 12時間表記：h　
+              $modify_date = date("Y-m-d H:i", strtotime($modify_date));
+             echo $modify_date ; ?>
             </a>
             [<a href="#" style="color: #00994C;">編集</a>]
             [<a href="#" style="color: #F33;">削除</a>]
           </p>
         </div>
-        <div class="msg">
-          <img src="http://c85c7a.medialib.glogster.com/taniaarca/media/71/71c8671f98761a43f6f50a282e20f0b82bdb1f8c/blog-images-1349202732-fondo-steve-jobs-ipad.jpg" width="48" height="48">
-          <p>
-            つぶやき３<span class="name"> (Seed kun) </span>
-            [<a href="#">Re</a>]
-          </p>
-          <p class="day">
-            <a href="view.html">
-              2016-01-28 18:03
-            </a>
-            [<a href="#" style="color: #00994C;">編集</a>]
-            [<a href="#" style="color: #F33;">削除</a>]
-          </p>
-        </div>
-        <div class="msg">
-          <img src="http://c85c7a.medialib.glogster.com/taniaarca/media/71/71c8671f98761a43f6f50a282e20f0b82bdb1f8c/blog-images-1349202732-fondo-steve-jobs-ipad.jpg" width="48" height="48">
-          <p>
-            つぶやき２<span class="name"> (Seed kun) </span>
-            [<a href="#">Re</a>]
-          </p>
-          <p class="day">
-            <a href="view.html">
-              2016-01-28 18:02
-            </a>
-            [<a href="#" style="color: #00994C;">編集</a>]
-            [<a href="#" style="color: #F33;">削除</a>]
-          </p>
-        </div>
-        <div class="msg">
-          <img src="http://c85c7a.medialib.glogster.com/taniaarca/media/71/71c8671f98761a43f6f50a282e20f0b82bdb1f8c/blog-images-1349202732-fondo-steve-jobs-ipad.jpg" width="48" height="48">
-          <p>
-            つぶやき１<span class="name"> (Seed kun) </span>
-            [<a href="#">Re</a>]
-          </p>
-          <p class="day">
-            <a href="view.html">
-              2016-01-28 18:01
-            </a>
-            [<a href="#" style="color: #00994C;">編集</a>]
-            [<a href="#" style="color: #F33;">削除</a>]
-          </p>
-        </div>
+
+        
+        <?php }?>
+        
+        
+        
+        
+
+
       </div>
 
     </div>
