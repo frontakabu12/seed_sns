@@ -1,4 +1,13 @@
 <?php  
+  
+  
+  require('function.php');
+
+  // ログインチェック
+  login_check();
+
+
+
   // 宿題：個別ページの表示を完成させる
   // ヒント：$_GET["tweet_id"]の中に、表示したいつぶやきのtweet_idが格納されている
   // ヒント：送信されているtweet_idを使用して、SQL文でDBからデータを１件取得
@@ -6,29 +15,32 @@
 
   // session_start();
 
+  // DBの接続
   require('dbconnect.php');
 
 
 
 
-  try {
+  //try {
+    // SQL文の作成
     //DBのテーブル結合
      
       $sql = "SELECT `tweets`.*,`members`.`nick_name`, `members`.`picture_path` FROM `tweets` INNER JOIN `members` ON `tweets`.`member_id` = `members`.`member_id` WHERE `tweet_id`=".$_GET["tweet_id"];
 
       
     //SQL文を実行
-      $data = array($_GET["tweet_id"]);
+      // $data = array($_GET["tweet_id"]);
       $stmt = $dbh->prepare($sql);
-      $stmt->execute($data);
+      $stmt->execute();
 
+    // 個別ページに表示するデータを取得
       $tweet_id = $stmt->fetch(PDO::FETCH_ASSOC);
      
       
-    } catch (Exception $e) {
+    // } catch (Exception $e) {
       
       
-     }
+    //  }
 
   
 
@@ -88,7 +100,6 @@
             <?php echo $tweet_id["tweet"]; ?>
           </p>
           <p class="day">
-            <a href="view.php?tweet_id=<?php echo $tweet_id["tweet_id"]; ?>">
             <?php 
               $modify_date = $tweet_id["modified"];
 
@@ -97,8 +108,7 @@
               // 24時間表記：H, 12時間表記：h　
               $modify_date = date("Y-m-d H:i", strtotime($modify_date));
              echo $modify_date ; ?>
-            </a>
-            [<a href="#" style="color: #F33;">削除</a>]
+            [<a href="delete.php?tweet_id=<?php echo $one_tweet["tweet_id"]; ?>" style="color: #F33;">削除</a>]
           </p>
         </div>
         <a href="index.php">&laquo;&nbsp;一覧へ戻る</a>
