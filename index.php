@@ -1,19 +1,26 @@
 <?php
-session_start();
+// session_start();
+
+require('function.php');
+
+// ログインチェック
+login_check();
+
+
 
 // DBの接続
 require('dbconnect.php');
 
 // ログインチェック
 
-if(isset($_SESSION['id'])){
-  // ログインしている
-}else{
-  // ログインしていない
-  // ログイン画面へ飛ばす
-  header("Location: login.php");
-  exit();
-}
+// if(isset($_SESSION['id'])){
+//   // ログインしている
+// }else{
+//   // ログインしていない
+//   // ログイン画面へ飛ばす
+//   header("Location: login.php");
+//   exit();
+// }
 
 
 
@@ -79,7 +86,9 @@ if(isset($_SESSION['id'])){
     // テーブル結合(複数のテーブルから関連したデータを取得)
     // ORDER BY `tweets`.`modified` DESC 最新順(降順)に並び替え
 
-    $sql = "SELECT `tweets`.*,`members`.`nick_name`, `members`.`picture_path` FROM `tweets` INNER JOIN `members` ON `tweets`.`member_id` = `members`.`member_id` ORDER BY `tweets`.`modified` DESC";
+    // 論理削除に対応 delete_flag = 0 のものだけを取得
+
+    $sql = "SELECT `tweets`.*,`members`.`nick_name`, `members`.`picture_path` FROM `tweets` INNER JOIN `members` ON `tweets`.`member_id` = `members`.`member_id` WHERE `delete_flag`=0 ORDER BY `tweets`.`modified` DESC";
 
 
     $stmt = $dbh->prepare($sql);
@@ -97,6 +106,39 @@ if(isset($_SESSION['id'])){
       if ($one_tweet == false) {
         break;
       }else{
+        // like数を求めるSQL文
+        $like_sql = "SELECT COUNT(*) as `like_count` FROM `likes` WHERE `tweet_id`=".$one_tweet["tweet_id"];
+
+        // SQL文実行
+        $like_stmt = $dbh->prepare($like_sql);
+        $like_stmt->execute();
+
+        $like_number = $like_stmt->fetch(PDO::FETCH_ASSOC);
+
+        // $one_tweetの中身
+        // $one_tweet["tweet"] つぶやき
+        // $one_tweet["member_id"] つぶやいた人のid
+        // $one_tweet["nick_name"] つぶやいた人のニックネーム
+        // $one_tweet["picture_path"] つぶやいた人のプロフィール画像
+        // $one_tweet["modified"] つぶやいた日時
+
+        // 一行分のデータに新しいキーを用意して、like数を代入する
+        $one_tweet["like_count"] = $like_number["like_count"];
+
+
+        // ログインしている人がLikeしているかどうかの情報を取得
+        $login_like_sql = "SELECT COUNT(*) as `like_count` FROM `likes` WHERE `tweet_id`=".$one_tweet["tweet_id"]." AND `member_id`= ".$_SESSION["id"];
+
+        // SQL文の実行
+        $login_like_stmt = $dbh->prepare($login_like_sql);
+        $login_like_stmt->execute();
+
+        // フェッチして取得
+        $login_like_number = $login_like_stmt->fetch(PDO::FETCH_ASSOC);
+
+        $one_tweet["login_like_flag"] = $login_like_number["like_count"];
+
+
         // データが取得できている
         $tweet_list[] = $one_tweet;
 
@@ -191,7 +233,14 @@ if(isset($_SESSION['id'])){
           <img src="picture_path/<?php echo $one_tweet["picture_path"]; ?>" width="48" height="48">
           <p>
             <?php echo $one_tweet["tweet"]; ?><span class="name"> (<?php echo $one_tweet["nick_name"];  ?>) </span>
-            [<a href="#">Re</a>]
+            [<a href="reply.php?tweet_id=<?php echo $one_tweet["tweet_id"]; ?>">Re</a>] 
+            <?php if($one_tweet["login_like_flag"]==0){ ?>
+            <a href="like.php?like_tweet_id=<?php echo $one_tweet["tweet_id"]; ?>"><i class="fa fa-thumbs-o-up" aria-hidden="true"></i> Like</a>
+            <?php }else{ ?>
+            <a href="like.php?unlike_tweet_id=<?php echo $one_tweet["tweet_id"]; ?>"><i class="fa fa-thumbs-o-up" aria-hidden="true"></i> UnLike</a>
+            <?php } ?>
+
+             <?php if($one_tweet["like_count"] >0){ echo $one_tweet["like_count"];} ?>
           </p>
           <p class="day">
             <a href="view.php?tweet_id=<?php echo $one_tweet["tweet_id"]; ?>">
@@ -204,8 +253,13 @@ if(isset($_SESSION['id'])){
               $modify_date = date("Y-m-d H:i", strtotime($modify_date));
              echo $modify_date ; ?>
             </a>
+            <?php if($_SESSION["id"] == $one_tweet["member_id"]){  ?>
             [<a href="#" style="color: #00994C;">編集</a>]
-            [<a href="#" style="color: #F33;">削除</a>]
+            [<a onclick="return confirm('削除します、よろしいですか？');" href="delete.php?tweet_id=<?php echo $one_tweet["tweet_id"]; ?>" style="color: #F33;">削除</a>]
+            <?php }  ?>
+            <?php if($one_tweet["reply_tweet_id"] >0) { ?>
+            [<a href="view.php?tweet_id=<?php echo $one_tweet["reply_tweet_id"] ?>" style="color: #a9a9a9;">返信元のメッセージを表示</a>]
+            <?php } ?>
           </p>
         </div>
 
