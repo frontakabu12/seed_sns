@@ -69,6 +69,48 @@ require('dbconnect.php');
 
 
 
+  // --------ページング処理----------
+
+  $page = "";
+
+  // パラメータが存在していたらページ番号代入
+  if(isset($_GET["page"])){
+    $page = $_GET["page"];
+  }else{
+    // 存在しない場合はページ番号を1とする
+    $page = 1;
+  }
+
+  // 1以下のイレギュラーな数字が入ってきたとき、ページ番号を強制的に1にする
+  // max カンマ区切りで羅列された数字の中から最大の数字を取得
+  $page = max($page, 1);
+
+  // 1ページ分の表示件数
+  $page_row = 5;
+
+  // データの件数から最大ページ数を計算する
+  $sql = "SELECT COUNT(*) AS `cnt` FROM `tweets` WHERE `delete_flag`= 0 ";
+  $page_stmt = $dbh->prepare($sql);
+  $page_stmt->execute();
+
+  $record_count = $page_stmt->fetch(PDO::FETCH_ASSOC);
+
+  // ceil 小数点の切り上げ
+  $all_page_number = ceil($record_count['cnt']/ $page_row);
+
+  // パラメータのページ番号が最大ページを超えていれば、強制的に最後のページとする
+  // min カンマ区切りの数字の羅列の中から、最小の数字を取得する 
+  $page = min($page, $all_page_number);
+
+
+  // 表示するデータの取得開始場所
+  $start = ($page -1) * $page_row;
+
+
+
+  // ------------------------------
+
+
   // ----------表示用のデータ取得-------------
 
 
@@ -88,7 +130,7 @@ require('dbconnect.php');
 
     // 論理削除に対応 delete_flag = 0 のものだけを取得
 
-    $sql = "SELECT `tweets`.*,`members`.`nick_name`, `members`.`picture_path` FROM `tweets` INNER JOIN `members` ON `tweets`.`member_id` = `members`.`member_id` WHERE `delete_flag`=0 ORDER BY `tweets`.`modified` DESC";
+    $sql = "SELECT `tweets`.*,`members`.`nick_name`, `members`.`picture_path` FROM `tweets` INNER JOIN `members` ON `tweets`.`member_id` = `members`.`member_id` WHERE `delete_flag`=0 ORDER BY `tweets`.`modified` DESC LIMIT ".$start.",".$page_row;
 
 
     $stmt = $dbh->prepare($sql);
@@ -151,12 +193,6 @@ require('dbconnect.php');
     
   }
 
-
-
-
-
-
-
   
 ?>
 
@@ -216,10 +252,20 @@ require('dbconnect.php');
             </div>
           <ul class="paging">
             <input type="submit" class="btn btn-info" value="つぶやく">
+                
                 &nbsp;&nbsp;&nbsp;&nbsp;
-                <li><a href="index.php" class="btn btn-default">前</a></li>
+                <?php if($page == 1){ ?>
+                <li>前</li>
+                <?php }else{ ?>
+                <li><a href="index.php?page=<?php echo $page - 1; ?>" class="btn btn-default">前</a></li>
+                <?php } ?>
                 &nbsp;&nbsp;|&nbsp;&nbsp;
-                <li><a href="index.php" class="btn btn-default">次</a></li>
+                <?php if($page == $all_page_number){ ?>
+                <li>次</li>
+                <?php }else{ ?>
+                <li><a href="index.php?page=<?php echo $page + 1; ?>" class="btn btn-default">次</a></li>
+                <?php } ?>
+                <li><?php echo $page; ?> / <?php echo $all_page_number; ?>Page</li>
           </ul>
         </form>
       </div>
