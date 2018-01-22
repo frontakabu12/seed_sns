@@ -300,7 +300,7 @@ require('dbconnect.php');
              echo $modify_date ; ?>
             </a>
             <?php if($_SESSION["id"] == $one_tweet["member_id"]){  ?>
-            [<a href="#" style="color: #00994C;">編集</a>]
+            [<a href="edit.php?tweet_id=<?php echo $one_tweet["tweet_id"]; ?>" style="color: #00994C;">編集</a>]
             [<a onclick="return confirm('削除します、よろしいですか？');" href="delete.php?tweet_id=<?php echo $one_tweet["tweet_id"]; ?>" style="color: #F33;">削除</a>]
             <?php }  ?>
             <?php if($one_tweet["reply_tweet_id"] >0) { ?>
