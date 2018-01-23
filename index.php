@@ -117,7 +117,8 @@ require('dbconnect.php');
   try {
     // ログインしている人の情報を取得する
     $sql = "SELECT * FROM `members` WHERE `member_id`=".$_SESSION["id"] ;
-
+    
+    // $_SESSION["id"]はログインしている人のid
 
     $stmt = $dbh->prepare($sql);
     $stmt->execute();
@@ -187,6 +188,17 @@ require('dbconnect.php');
       }
     }
 
+    // Followingの数
+    $following_sql = "SELECT COUNT(*) as `cnt` FROM `follows` WHERE `member_id`=".$_SESSION["id"];
+    $following_stmt = $dbh->prepare($following_sql);
+    $following_stmt->execute();
+    $following = $following_stmt->fetch(PDO::FETCH_ASSOC);
+
+    // Followerの数
+    $follower_sql = "SELECT COUNT(*) as `cnt` FROM `follows` WHERE `follower_id`=".$_SESSION["id"];
+    $follower_stmt = $dbh->prepare($follower_sql);
+    $follower_stmt->execute();
+    $follower = $follower_stmt->fetch(PDO::FETCH_ASSOC);
 
 
   } catch (Exception $e) {
@@ -271,12 +283,15 @@ require('dbconnect.php');
       </div>
 
       <div class="col-md-8 content-margin-top">
+        <div class="msg_header">
+          <a href="#">Followers<span class="badge badge-pill badge-default"><?php echo $follower["cnt"]; ?></span></a> <a href="#">Following<span class="badge badge-pill badge-default"><?php echo $following["cnt"]; ?></span></a>
+        </div>
         <?php foreach ($tweet_list as $one_tweet) { ?>
         
 
         <!-- 繰り返すタグが書かれる場所 -->
          <div class="msg">
-          <img src="picture_path/<?php echo $one_tweet["picture_path"]; ?>" width="48" height="48">
+          <a href="profile.php?member_id=<?php echo $one_tweet["member_id"]; ?>"><img src="picture_path/<?php echo $one_tweet["picture_path"]; ?>" width="48" height="48"></a>
           <p>
             <?php echo $one_tweet["tweet"]; ?><span class="name"> (<?php echo $one_tweet["nick_name"];  ?>) </span>
             [<a href="reply.php?tweet_id=<?php echo $one_tweet["tweet_id"]; ?>">Re</a>] 

@@ -1,0 +1,12 @@
+フォロー機能の考え方
+
+前提：ログインしている人はmember_id=9のseedである
+
+ログインしている人のfollowingの数を計算している
+(seedがフォローボタンを押したかず)
+
+SELECT COUNT(*) as `cnt` FROM `follows` WHERE `member_id`=9
+
+ログインしている人がfollowされている数を計算している
+(誰か複数人がseedのプロフィールページでフォローボタンを押した数)
+SELECT COUNT(*) as `cnt` FROM `follows` WHERE `follower_id`=9
