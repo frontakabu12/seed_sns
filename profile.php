@@ -1,7 +1,9 @@
 <?php
 
-session_start();
+// session_start();
 // GET送信されたmember_idを使ってプロフィール情報をmembersテーブルから取得
+
+require('function.php');
 
 
 require('dbconnect.php');
@@ -16,6 +18,9 @@ $stmt->execute();
 
 $profile_member = $stmt->fetch(PDO::FETCH_ASSOC);
 
+
+
+
 // フォロー処理
 // profile.php?follow_id=9というリンクが押された＝フォローボタンが押された
 
@@ -29,19 +34,21 @@ if(isset($_GET["follow_id"])){
 }
 
 
+$sql = "SELECT `tweets`.*,`members`.`nick_name`, `members`.`picture_path` FROM `tweets` INNER JOIN `members` ON `tweets`.`member_id` = `members`.`member_id` WHERE `delete_flag`=0 AND `tweets`.`member_id`=".$_GET["member_id"]." ORDER BY `modified` DESC ";
 
-    $sql = "SELECT * FROM `tweets` WHERE `delete_flag`=0 AND `member_id`=".$_GET["member_id"];
-
-
-    $stmt = $dbh->prepare($sql);
-    $stmt->execute();
-
-
-    // 一覧表示用の配列を用意
-    $member_tweet_list = array();
+      
+//SQL文を実行
+// $data = array($_GET["tweet_id"]);
+$stmt = $dbh->prepare($sql);
+$stmt->execute();
+// $one_tweet = $stmt->fetch(PDO::FETCH_ASSOC); 
 
 
-//     // 複数行のデータを取得するためのループ
+
+$member_tweet_list = array();
+
+
+// 複数行のデータを取得するためのループ
     while (1) {
       $one_tweet = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -54,22 +61,6 @@ if(isset($_GET["follow_id"])){
 
       }
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 ?>
@@ -132,7 +123,7 @@ if(isset($_GET["follow_id"])){
       </div>
 
       <div class="col-md-9 content-margin-top">
-      
+      <?php foreach ($member_tweet_list as $one_tweet) { ?>
 
         <!-- 繰り返すタグが書かれる場所 -->
         <div class="msg">
@@ -144,11 +135,20 @@ if(isset($_GET["follow_id"])){
             
           </p>
           <p class="day">
-            2016-01-28 18:04
-            [<a href="#" style="color: #F33;">削除</a>]
+            <?php 
+              $modify_date = $one_tweet["modified"];
+
+              // date関数　書式を時間に変更するとき
+              // strtotime 文字型(string)のデータを日時型に変換できる
+              // 24時間表記：H, 12時間表記：h　
+              $modify_date = date("Y-m-d H:i", strtotime($modify_date));
+             echo $modify_date ; ?>
+             <?php if($_SESSION["id"] == $one_tweet["member_id"]){  ?>
+            [<a href="delete.php?tweet_id=<?php echo $one_tweet["tweet_id"]; ?>" style="color: #F33;">削除</a>]
+            <?php }  ?>
           </p>
         </div>
-        
+        <?php } ?>
 
 
         <!-- <div class="msg">
