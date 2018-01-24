@@ -21,7 +21,7 @@ $profile_member = $stmt->fetch(PDO::FETCH_ASSOC);
 // profile.php?follow_id=9というリンクが押された＝フォローボタンが押された
 
 if(isset($_GET["follow_id"])){
-// follow情報を記録するSQL文を作成
+  // follow情報を記録するSQL文を作成
   $sql = "INSERT INTO `follows` (`member_id`, `follower_id`) VALUES (?,?);";
 
   $data = array($_SESSION["id"],$_GET["follow_id"]);
@@ -31,6 +31,23 @@ if(isset($_GET["follow_id"])){
   // フォローボタンを押す前の状態に戻す(再読み込みで再度フォロー処理が動くのを防ぐ)
   header("Location: follow.php");
 }
+
+// フォロー解除処理
+if(isset($_GET["unfollow_id"])){
+
+  // 登録されているfollow情報をfollowsテーブルから削除
+  $sql = "DELETE FROM `follows` WHERE `follower_id` =".$_GET["unfollow_id"]." AND `member_id`=".$_SESSION["id"];
+
+  // SQL実行
+  $stmt = $dbh->prepare($sql);
+  $stmt->execute();
+
+  // 一覧ページへ戻る
+  header("Location: follow.php");
+
+
+
+ }
 
 
 // $_GET["member_id"]のつぶやきを一覧で表示
@@ -66,6 +83,10 @@ $member_tweet_list = array();
        $member_tweet_list[] = $one_tweet;
          }
       }
+
+
+
+
 
 ?>
 
@@ -143,6 +164,7 @@ $member_tweet_list = array();
         <a href="follow.php?follow_id=<?php echo $one_tweet["member_id"]; ?>">
         <button class="btn btn-default" >フォロー</button></a>
         <?php }else{  ?>
+          <a href="follow.php?unfollow_id=<?php echo $one_tweet["member_id"]; ?>">
           <button class="btn btn-default" >フォロー解除</button></a>
         <?php } ?>
           
