@@ -33,15 +33,16 @@ if(isset($_GET["follow_id"])){
   $fl_stmt->execute($data);
 }
 
+// $_GET["member_id"]のつぶやきを一覧で表示
 
 $sql = "SELECT `tweets`.*,`members`.`nick_name`, `members`.`picture_path` FROM `tweets` INNER JOIN `members` ON `tweets`.`member_id` = `members`.`member_id` WHERE `delete_flag`=0 AND `tweets`.`member_id`=".$_GET["member_id"]." ORDER BY `modified` DESC ";
 
       
 //SQL文を実行
-// $data = array($_GET["tweet_id"]);
+
 $stmt = $dbh->prepare($sql);
 $stmt->execute();
-// $one_tweet = $stmt->fetch(PDO::FETCH_ASSOC); 
+
 
 
 
@@ -144,7 +145,7 @@ $member_tweet_list = array();
               $modify_date = date("Y-m-d H:i", strtotime($modify_date));
              echo $modify_date ; ?>
              <?php if($_SESSION["id"] == $one_tweet["member_id"]){  ?>
-            [<a href="delete.php?tweet_id=<?php echo $one_tweet["tweet_id"]; ?>" style="color: #F33;">削除</a>]
+             [<a onclick="return confirm('削除します、よろしいですか？');" href="delete.php?tweet_id=<?php echo $one_tweet["tweet_id"]; ?>" style="color: #F33;">削除</a>]
             <?php }  ?>
           </p>
         </div>
