@@ -284,7 +284,7 @@ require('dbconnect.php');
 
       <div class="col-md-8 content-margin-top">
         <div class="msg_header">
-          <a href="#">Followers<span class="badge badge-pill badge-default"><?php echo $follower["cnt"]; ?></span></a> <a href="#">Following<span class="badge badge-pill badge-default"><?php echo $following["cnt"]; ?></span></a>
+          <a href="follow.php">Followers<span class="badge badge-pill badge-default"><?php echo $follower["cnt"]; ?></span></a> <a href="#">Following<span class="badge badge-pill badge-default"><?php echo $following["cnt"]; ?></span></a>
         </div>
         <?php foreach ($tweet_list as $one_tweet) { ?>
         
