@@ -20,6 +20,13 @@ $profile_member = $stmt->fetch(PDO::FETCH_ASSOC);
 
 
 
+// 自分もフォローしていたら1,フォローしていなかったら0を取得
+$fl_flag_sql = "SELECT COUNT(*) as `cnt` FROM `follows` WHERE `member_id`=".$_SESSION["id"]." AND `follower_id`=".$_GET["member_id"];
+
+        $fl_stmt = $dbh->prepare($fl_flag_sql);
+        $fl_stmt->execute();
+        $fl_flag = $fl_stmt->fetch(PDO::FETCH_ASSOC);
+
 
 // フォロー処理
 // profile.php?follow_id=9というリンクが押された＝フォローボタンが押された
@@ -31,6 +38,21 @@ if(isset($_GET["follow_id"])){
   $data = array($_SESSION["id"],$_GET["follow_id"]);
   $fl_stmt = $dbh->prepare($sql);
   $fl_stmt->execute($data);
+
+}
+
+// フォロー解除処理
+if(isset($_GET["unfollow_id"])){
+
+  // 登録されているfollow情報をfollowsテーブルから削除
+  $sql = "DELETE FROM `follows` WHERE `follower_id` =".$_GET["unfollow_id"]." AND `member_id`=".$_SESSION["id"];
+
+  // SQL実行
+  $stmt = $dbh->prepare($sql);
+  $stmt->execute();
+
+  header("Location: profile.php?member_id=".$_GET["member_id"]);
+
 }
 
 // $_GET["member_id"]のつぶやきを一覧で表示
@@ -42,9 +64,6 @@ $sql = "SELECT `tweets`.*,`members`.`nick_name`, `members`.`picture_path` FROM `
 
 $stmt = $dbh->prepare($sql);
 $stmt->execute();
-
-
-
 
 $member_tweet_list = array();
 
@@ -117,8 +136,19 @@ $member_tweet_list = array();
         <img src="picture_path/<?php echo $profile_member["picture_path"]; ?>" width="250" height="250">
         <h3><?php echo $profile_member["nick_name"]; ?> </h3>
         <?php if($_SESSION["id"] != $profile_member["member_id"]){  ?>
+
+        <?php if($fl_flag["cnt"] == 0) { ?>
+        <!-- フォローボタン -->
         <a href="profile.php?member_id=<?php echo $profile_member["member_id"]; ?>&follow_id=<?php echo $profile_member["member_id"]; ?>">
-        <button class="btn btn-block btn-default" >フォロー</button></a><?php } ?>
+          <button class="btn btn-block btn-default" >フォロー</button></a>
+
+          <?php }else{  ?>
+
+        <!-- フォロー解除ボタン -->
+        <a href="profile.php?member_id=<?php echo $profile_member["member_id"]; ?>&unfollow_id=<?php echo $profile_member["member_id"]; ?>">
+          <button class="btn btn-block btn-default">フォロー解除</button></a>
+        <?php } ?>
+        <?php } ?>
         <br>
         <a href="index.php">&laquo;&nbsp;一覧へ戻る</a>
       </div>
