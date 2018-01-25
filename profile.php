@@ -39,6 +39,8 @@ if(isset($_GET["follow_id"])){
   $fl_stmt = $dbh->prepare($sql);
   $fl_stmt->execute($data);
 
+   header("Location: profile.php?member_id=".$_GET["member_id"]);
+
 }
 
 // フォロー解除処理
