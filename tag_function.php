@@ -40,6 +40,7 @@ $input_tags_string = "";
 $i = 0;
 
 foreach ($input_tags as $tag_each) {
+	$tag_each = str_replace("#", "", $tag_each);
 	$input_tags_string .= "'".$tag_each."'";
 	
 	$i++;
