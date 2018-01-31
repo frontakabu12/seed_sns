@@ -2,6 +2,7 @@
 // session_start();
 
 require('function.php');
+require('tag_function.php');
 
 // ログインチェック
 login_check();
@@ -49,6 +50,30 @@ require('dbconnect.php');
       $data = array($tweet, $member_id);    // $data = array($_POST['tweet'], $_SESSION["id"], -1);
       $stmt = $dbh->prepare($sql);
       $stmt->execute($data);
+
+      // INSERTされたつぶやきのIDを取得
+      $new_tweet_id = $dbh->lastInsertId('tweet_id');
+
+
+
+    // タグ登録機能
+    // タグの存在チェック（なかったらタグテーブルに保存）
+      // $input_tags = "#夏　#なつ #海外 #セブ";
+      $input_tags = $_POST["hashtag"];
+
+      $input_tags = explode(" #", $input_tags);
+      // $input_tags = array("#夏", "なつ", "海外", "セブ");
+
+      foreach ($input_tags as $tag_each) {
+        $input_tag = str_replace("#", "", $tag_each);
+        exists_tag($input_tag,$dbh);
+
+      }
+
+      // タグとつぶやきの関連付けをDBに保存
+      create_tweet_tags($new_tweet_id,$input_tags,$dbh);
+
+
 
     //$_SESSIONの情報を削除
       // unset 指定した変数を削除するという意味。SESSIONじゃなくても使える
@@ -262,6 +287,14 @@ require('dbconnect.php');
                 <textarea name="tweet" cols="50" rows="5" class="form-control" placeholder="例：Hello World!"></textarea>
               </div>
             </div>
+            <!-- タグ -->
+            <div class="form-group">
+              <label class="col-sm-4 control-label">タグ</label>
+              <div class="col-sm-8">
+                <input type="text" name="hashtag" class="form-control" placeholder="例: #Japan #Cebu" >
+              </div>
+            </div>
+
           <ul class="paging">
             <input type="submit" class="btn btn-info" value="つぶやく">
                 
