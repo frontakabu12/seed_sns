@@ -225,6 +225,22 @@ require('dbconnect.php');
     $follower_stmt->execute();
     $follower = $follower_stmt->fetch(PDO::FETCH_ASSOC);
 
+    // タグの一覧を取得
+    $tag_sql = "SELECT * FROM `tags`";
+    $tag_stmt = $dbh->prepare($tag_sql);
+    $tag_stmt->execute();
+
+    $tag_list = array();
+    while(1){
+      $one_tag = $tag_stmt->fetch(PDO::FETCH_ASSOC);
+
+      if($one_tag == false){
+        break;
+      }
+
+      $tag_list[] = $one_tag;
+    }
+
 
   } catch (Exception $e) {
     
@@ -313,6 +329,11 @@ require('dbconnect.php');
                 <li><?php echo $page; ?> / <?php echo $all_page_number; ?>Page</li>
           </ul>
         </form>
+        <ul>
+          <?php foreach ($tag_list as $tag_each) { ?>
+            <li><h5><a href="tag_search.php?tag_id=<?php echo $tag_each["id"]; ?>">#<?php echo $tag_each["tag"]; ?></a></h5></li>
+          <?php } ?>
+        </ul>
       </div>
 
       <div class="col-md-8 content-margin-top">
@@ -321,7 +342,6 @@ require('dbconnect.php');
         </div>
         <?php foreach ($tweet_list as $one_tweet) { ?>
         
-
         <!-- 繰り返すタグが書かれる場所 -->
          <div class="msg">
           <a href="profile.php?member_id=<?php echo $one_tweet["member_id"]; ?>"><img src="picture_path/<?php echo $one_tweet["picture_path"]; ?>" width="48" height="48"></a>
@@ -340,7 +360,6 @@ require('dbconnect.php');
             <a href="view.php?tweet_id=<?php echo $one_tweet["tweet_id"]; ?>">
              <?php 
               $modify_date = $one_tweet["modified"];
-
               // date関数　書式を時間に変更するとき
               // strtotime 文字型(string)のデータを日時型に変換できる
               // 24時間表記：H, 12時間表記：h　
@@ -356,17 +375,8 @@ require('dbconnect.php');
             <?php } ?>
           </p>
         </div>
-
-        
         <?php }?>
-        
-        
-        
-        
-
-
       </div>
-
     </div>
   </div>
 
